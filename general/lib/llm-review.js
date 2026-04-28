@@ -177,7 +177,7 @@ async function callVertex(prompt, { model, maxTokens = 16000, retries = 3 } = {}
  * Call an Azure OpenAI chat-completions deployment fronted by APIM.
  *
  * Required env:
- *   APIM_GATEWAY_URL        e.g. https://apim-hack26test.azure-api.net
+ *   APIM_GATEWAY_URL        e.g. https://<apim-name>.azure-api.net
  *   APIM_SUBSCRIPTION_KEY   per-team subscription key from APIM
  * Optional env:
  *   FOUNDRY_CHAT_MODEL      Azure deployment name (default: gpt-5-mini)

@@ -3,6 +3,7 @@ node_modules/
 
 # Environment files (personal overrides)
 .env
+.env.*
 .env.public
 !.env.example
 
