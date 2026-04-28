@@ -1,0 +1,306 @@
+<mxfile host="app.diagrams.net" modified="2026-04-24" version="24.0.0">
+  <diagram name="AI For Accountability — Azure Architecture" id="azure-arch">
+    <mxGraphModel pageWidth="1900" pageHeight="1400" dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- TITLE -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="title" value="AI For Accountability — Azure Target Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#1a1a2e;" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="1500" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 1: Open Data Sources -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-sources" value="① Open Data Sources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="160" height="340" as="geometry"/>
+        </mxCell>
+        <mxCell id="src-cra" value="CRA T3010&#xa;Charity Filings" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/general/Globe.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="120" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="src-fed" value="Federal Grants&#xa;&amp; Contributions" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/general/Globe.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="220" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="src-ab" value="Alberta Open&#xa;Data Portal" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/general/Globe.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="320" width="50" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 2: Ingestion — Container Apps Jobs -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-ingest" value="② Ingestion — Azure Container Apps Jobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="210" y="80" width="200" height="340" as="geometry"/>
+        </mxCell>
+        <mxCell id="job-cra" value="CRA Import Job&#xa;(scripts 01–08)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="120" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="job-fed" value="FED Import Job&#xa;(scripts 01–05)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="210" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="job-ab" value="AB Import Job&#xa;(scripts 01–09)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="300" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 3: Blob Storage -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-blob" value="③ Azure Blob Storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="440" y="80" width="200" height="340" as="geometry"/>
+        </mxCell>
+        <mxCell id="blob-cra" value="cra-data&#xa;(JSONL / CSV)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/storage/Blob_Block.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="505" y="120" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="blob-fed" value="fed-data&#xa;(JSONL / CSV)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/storage/Blob_Block.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="505" y="210" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="blob-ab" value="ab-data&#xa;(JSONL / CSV)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/storage/Blob_Block.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="505" y="300" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 4: PostgreSQL — VNet with Delegated Subnet -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-vnet" value="④ Azure VNet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=4;" vertex="1" parent="1">
+          <mxGeometry x="670" y="80" width="320" height="560" as="geometry"/>
+        </mxCell>
+        <mxCell id="subnet-pg" value="PostgreSQL Subnet (Delegated)&#xa;10.0.4.0/24" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;fontSize=11;fontStyle=1;align=center;strokeWidth=2;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="690" y="120" width="280" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-icon" value="Azure Database for&#xa;PostgreSQL Flexible Server" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/databases/Azure_Database_PostgreSQL_Server.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="766" y="160" width="80" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-cra" value="schema: cra&#xa;~8.76M rows · 49 tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9db;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="705" y="290" width="260" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-fed" value="schema: fed&#xa;~1.275M rows · 6 tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9db;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="705" y="345" width="260" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-ab" value="schema: ab&#xa;~2.61M rows · 9 tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9db;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="705" y="400" width="260" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-general" value="schema: general&#xa;851K golden records · 14 tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="705" y="455" width="260" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg-trgm" value="pg_trgm extension enabled" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="705" y="505" width="260" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 5: Entity Resolution Pipeline -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-pipeline" value="⑤ Entity Resolution Pipeline — Container Apps Jobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="670" y="670" width="320" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1" value="Stage 3–4&#xa;Deterministic Resolve" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="690" y="710" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2" value="Stage 5&#xa;Splink (Python)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="710" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3" value="Stage 6–7&#xa;Detect + Smart-match" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="850" y="710" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4" value="Stage 8&#xa;LLM Review&#xa;(Anthropic API)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="690" y="820" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5" value="Stage 9–10&#xa;Build Golden Records" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/compute/Container_Instances.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="820" width="50" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 6: Web Tier — Container Apps -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-web" value="⑥ Web Tier — Azure Container Apps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="80" width="220" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="app-dashboard" value="Pipeline Dashboard&#xa;Express · :3800" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/containers/Container_Apps.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1093" y="120" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="app-dossier" value="Dossier Viewer&#xa;Express · :3801" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/containers/Container_Apps.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1093" y="230" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="app-static" value="Landing Page&#xa;Static Web Apps" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/web/App_Service.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1093" y="340" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 7: Security -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-security" value="Security" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="80" width="200" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="kv" value="Azure Key Vault&#xa;DB conn strings&#xa;Anthropic API key" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/security/Key_Vaults.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="120" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="mi" value="Managed Identity&#xa;(passwordless auth)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/identity/Managed_Identities.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="230" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 8: Observability -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-obs" value="Observability" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="350" width="200" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="monitor" value="Azure Monitor&#xa;+ App Insights" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/management_governance/Monitor.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="390" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="logs" value="Log Analytics&#xa;Workspace" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="390" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- ZONE 9: CI/CD -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="zone-cicd" value="CI/CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontSize=13;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="620" width="200" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="acr" value="Azure Container&#xa;Registry" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/containers/Container_Registries.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="660" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="gha" value="GitHub Actions&#xa;(Build &amp; Deploy)" style="image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/devops/DevOps.svg;labelPosition=center;verticalLabelPosition=bottom;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="660" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- FLOW ARROWS -->
+        <!-- ══════════════════════════════════════════════════ -->
+
+        <!-- Sources → Ingest Jobs (HTTPS download) -->
+        <mxCell id="e1" value="HTTPS download" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#d6b656;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="src-cra" target="job-cra" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#d6b656;" edge="1" source="src-fed" target="job-fed" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#d6b656;" edge="1" source="src-ab" target="job-ab" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Ingest Jobs → Blob Storage -->
+        <mxCell id="e4" value="stage" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" source="job-cra" target="blob-cra" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" source="job-fed" target="blob-fed" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" source="job-ab" target="blob-ab" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Blob → Jobs (read back) -->
+        <mxCell id="e7" value="read" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#82b366;dashed=1;" edge="1" source="blob-cra" target="job-cra" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Ingest Jobs → PostgreSQL (import) -->
+        <mxCell id="e8" value="PostgreSQL:5432 import" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#82b366;" edge="1" source="job-cra" target="pg-icon" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#82b366;" edge="1" source="job-fed" target="pg-icon" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#82b366;" edge="1" source="job-ab" target="pg-icon" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- PostgreSQL → Pipeline -->
+        <mxCell id="e11" value="resolve" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="pg-icon" target="p1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Pipeline stages -->
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="p1" target="p2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="p2" target="p3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="p3" target="p4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="p4" target="p5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16" value="write golden records" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="p5" target="pg-general" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- PostgreSQL → Web Apps -->
+        <mxCell id="e17" value="PostgreSQL:5432 query" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" source="pg-icon" target="app-dashboard" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" source="pg-icon" target="app-dossier" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Key Vault → all compute (dashed orange) -->
+        <mxCell id="e19" value="secrets" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#d79b00;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" source="kv" target="zone-ingest" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e20" value="secrets" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#d79b00;dashed=1;" edge="1" source="kv" target="p4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e21" value="secrets" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#d79b00;dashed=1;" edge="1" source="kv" target="app-dashboard" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Managed Identity → Key Vault -->
+        <mxCell id="e22" value="auth" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#d79b00;dashed=1;" edge="1" source="mi" target="kv" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Telemetry → Monitor -->
+        <mxCell id="e23" value="telemetry" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#b85450;dashed=1;" edge="1" source="app-dashboard" target="monitor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#b85450;dashed=1;" edge="1" source="zone-pipeline" target="monitor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#b85450;dashed=1;" edge="1" source="monitor" target="logs" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- GitHub Actions → ACR → Container Apps -->
+        <mxCell id="e26" value="push image" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#666666;" edge="1" source="gha" target="acr" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="pull image" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" source="acr" target="zone-ingest" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" source="acr" target="zone-web" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- LEGEND -->
+        <!-- ══════════════════════════════════════════════════ -->
+        <mxCell id="legend" value="Traffic Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;verticalAlign=top;fontSize=12;fontStyle=1;align=center;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="20" y="460" width="200" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg1" value="── HTTPS download" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="30" y="490" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg2" value="── PostgreSQL:5432 import/query" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="30" y="515" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg3" value="── Pipeline flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="30" y="540" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg4" value="- - secrets / auth (Key Vault)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="30" y="565" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg5" value="- - telemetry (Monitor)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="30" y="590" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg6" value="── CI/CD (ACR + GitHub Actions)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="30" y="615" width="180" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

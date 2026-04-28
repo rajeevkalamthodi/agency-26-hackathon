@@ -238,6 +238,21 @@ This section is for **hackathon participants** who want to publish their team's 
 
 > **You only deploy the two apps** (`Dashboard` and `Dossier`). The shared base infrastructure — Azure Container Registry, Container Apps Environment, Key Vault, API Management gateway, and the Foundry-backed LLM endpoint — is **already provisioned and locked by the organizers**. You will not create, modify, or have access to it. Each team is given a per-team APIM subscription key that lets your apps call the shared LLM gateway.
 
+### Application architecture
+
+The diagram below shows what **your team deploys** (the two Container Apps in the blue zone) and the shared services they call. Everything outside the blue zone is organizer-managed and read-only from your perspective.
+
+![Participant application architecture](docs/app-architecturepng.png)
+
+- **Client** — your browser hits the public HTTPS URL of each Container App.
+- **Team-Deployed (Azure Container Apps)** — `Dashboard` (port 3800) and `Dossier` (port 3801), built from [general/](general/) and pushed via `deploy-app.ps1`.
+- **Image Source** — the shared **Azure Container Registry** that both apps pull their image from.
+- **LLM Gateway** — **Azure API Management** fronts the Foundry endpoint; your apps authenticate with the per-team `Ocp-Apim-Subscription-Key` header.
+- **Microsoft Foundry (organizer-managed)** — exposes `gpt-5`, `gpt-5-mini`, and `text-embedding-3-large` via the standard `/openai/deployments/{model}/chat/completions?api-version=2024-10-21` path.
+- **Read-Only Data Store** — the shared **PostgreSQL read replica** on Render. Writes are blocked at the protocol level — your apps can only `SELECT`.
+
+Source diagram: [docs/participant-app-architecture.drawio](docs/participant-app-architecture.drawio) (open in the Draw.io VS Code extension to edit).
+
 ### What you will deploy
 
 | App | Purpose | Public URL pattern |
