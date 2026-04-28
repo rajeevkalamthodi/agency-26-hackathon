@@ -1,6 +1,7 @@
 param(
-  [string]$Key = "1b659b8307cd4a298ddbca2475b43912",
-  [string]$Gateway = "https://apim-hack26test.azure-api.net",
+  [Parameter(Mandatory = $true)]
+  [string]$Key,
+  [string]$Gateway = "https://<apim-name>.azure-api.net",
   [string]$Deployment = "gpt-5-mini",
   [string]$ApiVersion = "2024-10-21"
 )
