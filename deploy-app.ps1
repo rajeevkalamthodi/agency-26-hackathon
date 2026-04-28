@@ -35,6 +35,9 @@ Get-Content $EnvFile | ForEach-Object {
 }
 function Need($key) {
   if (-not $cfg[$key]) { throw "Set $key in $EnvFile" }
+  if ($cfg[$key] -match '^<.+>$' -or $cfg[$key] -match '<env-prefix>|<acr-name>|<apim-name>|<your-subscription-id>|<platform-resource-group>|<your-team-resource-group>|<container-apps-environment-name>|<key-vault-name>') {
+    throw "$key in $EnvFile is still a placeholder ($($cfg[$key])). Replace it with the value from your organizer info pack."
+  }
   return $cfg[$key]
 }
 

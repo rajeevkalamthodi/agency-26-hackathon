@@ -266,6 +266,8 @@ Both apps are built from the [general/](general/) folder, packaged as Docker ima
 
 Install these on your laptop **before** starting:
 
+**Required** (the deploy script will fail without these):
+
 | Tool | Why | Install |
 |---|---|---|
 | **Azure CLI** ≥ 2.60 | Builds images on ACR, deploys Container Apps | https://learn.microsoft.com/cli/azure/install-azure-cli |
@@ -273,7 +275,14 @@ Install these on your laptop **before** starting:
 | **PowerShell 7+** (`pwsh`) | Runs the deployment script (works on Windows, macOS, Linux) | https://learn.microsoft.com/powershell/scripting/install/installing-powershell |
 | **Git** | Clone this repo | https://git-scm.com/downloads |
 
-You do **not** need Docker installed locally. Image builds run remotely on Azure Container Registry via `az acr build`.
+**Optional** (only if you want to run / debug the apps on your laptop instead of in Azure):
+
+| Tool | Why | Install |
+|---|---|---|
+| **Node.js 20 LTS** | Run `npm run entities:dashboard` (port 3800) and `npm run entities:dossier` (port 3801) locally from `general/` | https://nodejs.org/en/download |
+| **Docker Desktop** | Build / run the dashboard & dossier images locally with `docker build -f infra/docker/Dockerfile.dashboard .` for offline iteration | https://www.docker.com/products/docker-desktop/ |
+
+> You do **not** need Docker installed locally for the standard deploy path — `pwsh ./deploy-app.ps1` uses `az acr build`, which runs the build remotely on Azure Container Registry.
 
 You also need:
 
@@ -295,17 +304,25 @@ az extension add --name containerapp --upgrade
 From the repo root, copy the template and fill in the blanks:
 
 ```powershell
-cp .env.example .env
+Copy-Item .env.example .env     # PowerShell
+# or:  cp .env.example .env     # macOS / Linux / pwsh
 ```
 
-Edit `.env` and set **at minimum** these two values from the organizer info pack:
+Open `.env` and replace **every** `<placeholder>` with the value from your organizer info pack:
 
-```
-APIM_SUBSCRIPTION_KEY=<your team's key>
-DB_CONNECTION_STRING=postgresql://<user>:<pass>@<host>/<db>
-```
+| Variable | Where it comes from |
+|---|---|
+| `AZURE_SUBSCRIPTION_ID` | Organizer info pack (shared platform subscription) |
+| `AZURE_PREFIX` | Organizer info pack (e.g. `hack26abc`) — used to name your two Container Apps |
+| `PLATFORM_RG` | Organizer info pack (shared platform resource group) |
+| `ACR_NAME` / `ACR_LOGIN_SERVER` | Organizer info pack (shared registry) |
+| `CONTAINER_APPS_ENV` | Organizer info pack (shared Container Apps Env) |
+| `KEY_VAULT_NAME` | Organizer info pack (shared KV) |
+| `APIM_GATEWAY_URL` | Organizer info pack (e.g. `https://apim-<env>.azure-api.net`) |
+| `APIM_SUBSCRIPTION_KEY` | **Per-team key** from the organizer info pack |
+| `DB_CONNECTION_STRING` | Render read-only Postgres URL: `postgresql://<user>:<pass>@<host>/<db>` |
 
-The other values (subscription id, resource group, ACR name, APIM gateway URL, app names) are pre-filled with the shared platform defaults — leave them as-is unless your organizer tells you otherwise. `.env` is gitignored.
+`.env` is gitignored — it will never be committed.
 
 ### Step 3 — Deploy
 
@@ -371,6 +388,8 @@ The shared ACR images, KV, APIM, and Foundry endpoint are organizer-managed and 
 |---|---|---|
 | `az: command not found` | Azure CLI not installed | Install from the link in Prerequisites. |
 | `pwsh: command not found` | Running in Windows PowerShell 5.x or no PowerShell | Install PowerShell 7+. |
+| `The command requires the extension containerapp` | `containerapp` extension missing | `az extension add --name containerapp --upgrade` |
+| `is still a placeholder ...` from `deploy-app.ps1` | A `<...>` value in `.env` was not replaced | Open `.env` and replace every `<placeholder>` with the value from your organizer info pack. |
 | `Forbidden` / `AuthorizationFailed` on ACR or Container Apps | Your Azure account isn't on the shared resource group | Ask the organizer to grant you Contributor on `PLATFORM_RG`. |
 | `cannot execute UPDATE in a read-only transaction` in app logs | App is hitting the Render read-replica during a write | Expected with the read-replica DB; only the LLM smoke-test path is safe. |
 | `Foundry/APIM error 401` / `403` from the LLM smoke test | Wrong or missing `APIM_SUBSCRIPTION_KEY` | Re-check the value in `.env` and rerun `pwsh ./deploy-app.ps1 -SkipBuild`. |
