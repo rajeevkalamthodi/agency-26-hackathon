@@ -1,0 +1,20 @@
+# =============================================================================
+# Dockerfile.dashboard — pipeline operator UI (port 3800)
+# Build context = repo root.
+#   az acr build -r <acr> -t agency26/dashboard:<sha> \
+#       -f infra/docker/Dockerfile.dashboard .
+# =============================================================================
+FROM node:20-slim AS deps
+WORKDIR /app
+COPY general/package.json general/package-lock.json ./
+RUN npm ci --omit=optional --ignore-scripts \
+ && npm cache clean --force
+
+FROM node:20-slim AS runtime
+ENV NODE_ENV=production \
+    PORT=3800
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY general/ ./
+EXPOSE 3800
+CMD ["node", "scripts/tools/dashboard.js"]

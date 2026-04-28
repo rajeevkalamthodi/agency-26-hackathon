@@ -1,13 +1,18 @@
 /**
  * LLM Review - AI-assisted second pass for entity resolution.
  *
- * Dual-provider architecture:
+ * Tri-provider architecture:
  *   1. Try Anthropic direct API first (if ANTHROPIC_API_KEY is set)
  *   2. Fall back to Vertex AI (if VERTEX_SERVICE_ACCOUNT_JSON is set)
- *   3. Fail with clear error if neither is available
+ *   3. Fall back to Microsoft Foundry via APIM (if APIM_SUBSCRIPTION_KEY +
+ *      APIM_GATEWAY_URL are set) — Azure OpenAI passthrough hosted behind APIM.
+ *   4. Fail with clear error if none is available
  *
- * Both providers call the same Claude model with the same prompt.
+ * Anthropic + Vertex call the same Claude model with the same prompt.
  * Vertex uses Google OAuth2 service account auth + rawPredict endpoint.
+ * Foundry calls an Azure OpenAI deployment (default: gpt-5-mini) through APIM
+ * using a subscription key, so the same JSON-only review prompt works with
+ * minimal extras (no `system` role required).
  *
  * Can be used standalone or invoked automatically via --llm flag on resolve-entity.js.
  */
@@ -165,6 +170,78 @@ async function callVertex(prompt, { model, maxTokens = 16000, retries = 3 } = {}
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+//  PROVIDER: MICROSOFT FOUNDRY VIA APIM (Azure OpenAI passthrough)
+// ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * Call an Azure OpenAI chat-completions deployment fronted by APIM.
+ *
+ * Required env:
+ *   APIM_GATEWAY_URL        e.g. https://apim-hack26test.azure-api.net
+ *   APIM_SUBSCRIPTION_KEY   per-team subscription key from APIM
+ * Optional env:
+ *   FOUNDRY_CHAT_MODEL      Azure deployment name (default: gpt-5-mini)
+ *   FOUNDRY_API_VERSION     Azure OpenAI API version (default: 2024-10-21)
+ *   APIM_OPENAI_PATH        path prefix on APIM (default: /openai)
+ */
+async function callFoundry(prompt, { model, maxTokens = 16000, retries = 3 } = {}) {
+  const GATEWAY = (process.env.APIM_GATEWAY_URL || '').replace(/\/+$/, '');
+  const KEY = process.env.APIM_SUBSCRIPTION_KEY;
+  const PATH_PREFIX = process.env.APIM_OPENAI_PATH || '/openai';
+  const DEPLOYMENT = model || process.env.FOUNDRY_CHAT_MODEL || 'gpt-5-mini';
+  const API_VERSION = process.env.FOUNDRY_API_VERSION || '2024-10-21';
+
+  if (!GATEWAY || !KEY) {
+    throw new Error('Foundry/APIM not configured: set APIM_GATEWAY_URL and APIM_SUBSCRIPTION_KEY');
+  }
+
+  const url = `${GATEWAY}${PATH_PREFIX}/deployments/${DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const body = {
+      messages: [{ role: 'user', content: prompt }],
+      max_completion_tokens: maxTokens,
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Ocp-Apim-Subscription-Key': KEY,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 429 || res.status === 529 || res.status >= 500) {
+      const delay = Math.min(2000 * Math.pow(2, attempt) + Math.random() * 2000, 30000);
+      console.warn(`  [foundry retry] ${res.status} on attempt ${attempt + 1}, waiting ${(delay / 1000).toFixed(1)}s...`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Foundry/APIM error ${res.status}: ${errText.slice(0, 500)}`);
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || '';
+
+    return {
+      text: text.trim(),
+      usage: {
+        input_tokens: data.usage?.prompt_tokens,
+        output_tokens: data.usage?.completion_tokens,
+        model: DEPLOYMENT,
+        provider: 'foundry',
+      },
+    };
+  }
+
+  throw new Error(`Foundry/APIM failed after ${retries + 1} attempts`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 //  PROVIDER SELECTION + FALLBACK
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -175,17 +252,18 @@ function availableProviders() {
   const providers = [];
   if (process.env.ANTHROPIC_API_KEY) providers.push('anthropic');
   if (process.env.VERTEX_SERVICE_ACCOUNT_JSON && process.env.VERTEX_PROJECT_ID) providers.push('vertex');
+  if (process.env.APIM_SUBSCRIPTION_KEY && process.env.APIM_GATEWAY_URL) providers.push('foundry');
   return providers;
 }
 
 /**
  * Call Claude with automatic provider selection and fallback.
  *
- * Order: Anthropic direct -> Vertex AI -> error
+ * Order: Anthropic direct -> Vertex AI -> Foundry (APIM) -> error
  * Override with forceProvider option.
  *
  * @param {string} prompt
- * @param {object} options - { model, maxTokens, forceProvider: 'anthropic'|'vertex' }
+ * @param {object} options - { model, maxTokens, forceProvider: 'anthropic'|'vertex'|'foundry' }
  * @returns {{ text: string, usage: object }}
  */
 async function callLLM(prompt, options = {}) {
@@ -195,8 +273,9 @@ async function callLLM(prompt, options = {}) {
 
   if (providers.length === 0) {
     throw new Error(
-      'No LLM provider configured. Set ANTHROPIC_API_KEY (direct) or ' +
-      'VERTEX_SERVICE_ACCOUNT_JSON + VERTEX_PROJECT_ID (Vertex AI) in .env'
+      'No LLM provider configured. Set ANTHROPIC_API_KEY (direct), ' +
+      'VERTEX_SERVICE_ACCOUNT_JSON + VERTEX_PROJECT_ID (Vertex AI), or ' +
+      'APIM_GATEWAY_URL + APIM_SUBSCRIPTION_KEY (Microsoft Foundry via APIM) in .env'
     );
   }
 
@@ -210,6 +289,9 @@ async function callLLM(prompt, options = {}) {
       } else if (provider === 'vertex') {
         console.log('  [llm] Trying Vertex AI...');
         return await callVertex(prompt, options);
+      } else if (provider === 'foundry') {
+        console.log('  [llm] Trying Microsoft Foundry (APIM)...');
+        return await callFoundry(prompt, options);
       }
     } catch (err) {
       const msg = err.message || String(err);

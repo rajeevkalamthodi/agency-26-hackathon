@@ -45,6 +45,7 @@ const PHASES = {
   smartmatch: { label: '07 · Smart-match (IDF keyword overlap)',   cmd: 'node', args: ['--max-old-space-size=6144', 'scripts/07-smart-match.js', '--skip-llm'] },
   llm_ant:    { label: '08a · LLM review (Anthropic, 100 conc)',   cmd: 'node', args: ['scripts/08-llm-golden-records.js', '--concurrency', '100', '--provider', 'anthropic'] },
   llm_vtx:    { label: '08b · LLM review (Vertex, 100 conc)',      cmd: 'node', args: ['scripts/08-llm-golden-records.js', '--concurrency', '100', '--provider', 'vertex'] },
+  llm_fnd:    { label: '08c · LLM review (Foundry/APIM, 100 conc)', cmd: 'node', args: ['scripts/08-llm-golden-records.js', '--concurrency', '100', '--provider', 'foundry'] },
   build:      { label: '09 · Build golden records (final compile)', cmd: 'node', args: ['scripts/09-build-golden-records.js'] },
   donee_fb:   { label: '10 · Donee-name trigram fallback (NEW)',    cmd: 'node', args: ['scripts/10-donee-trigram-fallback.js'] },
 };
@@ -464,6 +465,36 @@ app.post('/api/kill-all', (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ────────────────────────────────────────────────────────────────────────────
+// LLM provider smoke test — calls callLLM directly, no DB writes.
+//   GET  /api/llm-providers                       → which providers env-configured
+//   POST /api/llm-ping  { provider, prompt? }     → live call, returns text+usage
+// ────────────────────────────────────────────────────────────────────────────
+const { callLLM, availableProviders } = require('../../lib/llm-review');
+
+app.get('/api/llm-providers', (req, res) => {
+  res.json({ providers: availableProviders() });
+});
+
+app.post('/api/llm-ping', async (req, res) => {
+  const provider = (req.body && req.body.provider) || 'foundry';
+  const prompt = (req.body && req.body.prompt) || 'Reply with exactly: PONG';
+  const started = Date.now();
+  try {
+    const r = await callLLM(prompt, { forceProvider: provider, maxTokens: 200 });
+    res.json({
+      ok: true,
+      provider: r.usage?.provider,
+      model: r.usage?.model,
+      text: r.text,
+      usage: r.usage,
+      elapsedMs: Date.now() - started,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message, elapsedMs: Date.now() - started });
+  }
+});
+
 app.get('/', (req, res) => res.type('html').send(HTML));
 
 // Reattach to any pipeline processes that are still running from a prior
@@ -590,6 +621,26 @@ const HTML = `<!doctype html>
 <div class="section-h">Pipeline stage</div>
 <div class="stage" id="stages"></div>
 
+<div class="section-h">LLM provider smoke test (no DB writes)</div>
+<div class="card" style="margin-bottom:16px">
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <label style="font-size:12px; color:#57606a">Provider:</label>
+    <select id="llm-provider" style="padding:5px 8px; border:1px solid #d0d7de; border-radius:6px; font-size:13px">
+      <option value="foundry">foundry (Azure OpenAI via APIM)</option>
+      <option value="anthropic">anthropic (direct API)</option>
+      <option value="vertex">vertex (Claude on GCP)</option>
+    </select>
+    <input id="llm-prompt" type="text" value="Reply with exactly: PONG"
+      style="flex:1; min-width:240px; padding:5px 8px; border:1px solid #d0d7de; border-radius:6px; font-size:13px"/>
+    <button onclick="pingLLM()"
+      style="padding:6px 14px; border:1px solid #1f883d; background:#1f883d; color:white; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600">
+      Test
+    </button>
+    <span id="llm-providers-info" style="font-size:11px; color:#57606a"></span>
+  </div>
+  <pre id="llm-ping-result" style="margin:10px 0 0; padding:10px; background:#f6f8fa; border:1px solid #d0d7de; border-radius:6px; font-size:12px; min-height:24px; max-height:240px; overflow:auto; white-space:pre-wrap"></pre>
+</div>
+
 <div class="section-h" style="display:flex; justify-content:space-between; align-items:baseline">
   <span>Control panel — click to run a phase (output streams inline)</span>
   <button id="kill-all-btn" onclick="killAll()"
@@ -705,6 +756,31 @@ async function killAll() {
   alert('Killed ' + (j.killed || []).length + ' process(es).\\n\\n' +
     (j.killed || []).map(k => 'pid ' + k.pid + ': ' + (k.cmd || '')).join('\\n'));
   tick();
+}
+async function pingLLM() {
+  const provider = document.getElementById('llm-provider').value;
+  const prompt = document.getElementById('llm-prompt').value || 'Reply with exactly: PONG';
+  const out = document.getElementById('llm-ping-result');
+  out.textContent = 'Calling ' + provider + ' ...';
+  try {
+    const r = await fetch('/api/llm-ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, prompt }),
+    });
+    const j = await r.json();
+    out.textContent = JSON.stringify(j, null, 2);
+  } catch (e) {
+    out.textContent = 'ERROR: ' + e.message;
+  }
+}
+async function loadProvidersInfo() {
+  try {
+    const r = await fetch('/api/llm-providers');
+    const j = await r.json();
+    const info = document.getElementById('llm-providers-info');
+    if (info) info.textContent = 'configured: ' + (j.providers && j.providers.length ? j.providers.join(', ') : 'none');
+  } catch {}
 }
 function toggleLog(key) {
   if (openLogs.has(key)) openLogs.delete(key); else openLogs.add(key);
@@ -882,6 +958,7 @@ function render(s) {
 
 tick();
 setInterval(tick, ${POLL_MS});
+loadProvidersInfo();
 </script>
 </body>
 </html>`;

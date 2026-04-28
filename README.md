@@ -231,3 +231,133 @@ Pure-function tests run instantly. DB-dependent tests require the modules' `.env
 Source code and pipeline: **MIT** — see [LICENSE](LICENSE).
 
 Data: redistributed under the original publishers' licences — **[Open Government Licence – Canada](https://open.canada.ca/en/open-government-licence-canada)** (CRA and federal data) and **[Open Government Licence – Alberta](https://open.alberta.ca/licence)** (Alberta data). The MIT licence on this repository covers the source code only and does not relicense the underlying data. See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full source-attribution details and third-party library credits; see [SECURITY.md](SECURITY.md) for the credential-handling convention.
+
+## Deploy to Azure
+
+This section is for **hackathon participants** who want to publish their team's Dashboard and Dossier apps to Azure Container Apps so judges and teammates can use them from a public URL.
+
+> **You only deploy the two apps** (`Dashboard` and `Dossier`). The shared base infrastructure — Azure Container Registry, Container Apps Environment, Key Vault, API Management gateway, and the Foundry-backed LLM endpoint — is **already provisioned and locked by the organizers**. You will not create, modify, or have access to it. Each team is given a per-team APIM subscription key that lets your apps call the shared LLM gateway.
+
+### What you will deploy
+
+| App | Purpose | Public URL pattern |
+|---|---|---|
+| **Dashboard** | Pipeline control panel + LLM provider smoke test | `https://ca-<prefix>-dashboard.<env-domain>` |
+| **Dossier** | Per-entity dossier read-only viewer | `https://ca-<prefix>-dossier.<env-domain>` |
+
+Both apps are built from the [general/](general/) folder, packaged as Docker images, pushed to the shared Azure Container Registry, and run on the shared Container Apps Environment.
+
+### Prerequisites
+
+Install these on your laptop **before** starting:
+
+| Tool | Why | Install |
+|---|---|---|
+| **Azure CLI** ≥ 2.60 | Builds images on ACR, deploys Container Apps | https://learn.microsoft.com/cli/azure/install-azure-cli |
+| **Azure CLI `containerapp` extension** | Deploys to Azure Container Apps | `az extension add --name containerapp --upgrade` |
+| **PowerShell 7+** (`pwsh`) | Runs the deployment script (works on Windows, macOS, Linux) | https://learn.microsoft.com/powershell/scripting/install/installing-powershell |
+| **Git** | Clone this repo | https://git-scm.com/downloads |
+
+You do **not** need Docker installed locally. Image builds run remotely on Azure Container Registry via `az acr build`.
+
+You also need:
+
+- An **Azure account** that the organizer has added as a contributor on the platform resource group (or Reader + ACR Push). Sign in once with `az login`.
+- The **organizer info pack** containing your team's:
+  - APIM subscription key (for calling the Foundry LLM gateway)
+  - Render Postgres read-only connection string
+
+### Step 1 — Sign in to Azure
+
+```powershell
+az login
+az account set --subscription <SUBSCRIPTION_ID_FROM_ORGANIZER>
+az extension add --name containerapp --upgrade
+```
+
+### Step 2 — Configure your `.env` file
+
+From the repo root, copy the template and fill in the blanks:
+
+```powershell
+cp .env.example .env
+```
+
+Edit `.env` and set **at minimum** these two values from the organizer info pack:
+
+```
+APIM_SUBSCRIPTION_KEY=<your team's key>
+DB_CONNECTION_STRING=postgresql://<user>:<pass>@<host>/<db>
+```
+
+The other values (subscription id, resource group, ACR name, APIM gateway URL, app names) are pre-filled with the shared platform defaults — leave them as-is unless your organizer tells you otherwise. `.env` is gitignored.
+
+### Step 3 — Deploy
+
+From the repo root:
+
+```powershell
+pwsh ./deploy-app.ps1
+```
+
+The script will:
+
+1. Build `agency26/dashboard:latest` and `agency26/dossier:latest` remotely on the shared ACR (no local Docker needed).
+2. Create or update the `ca-<prefix>-dashboard` and `ca-<prefix>-dossier` Container Apps in the shared environment.
+3. Inject `APIM_GATEWAY_URL`, `APIM_SUBSCRIPTION_KEY`, and `DB_CONNECTION_STRING` as Container App secrets.
+4. Print the public HTTPS URLs of both apps.
+
+Typical run time: **2–4 minutes** for the first deploy, **1–2 minutes** for redeploys.
+
+#### Useful flags
+
+| Flag | What it does |
+|---|---|
+| `-SkipBuild` | Reuse the existing image in ACR; only update the Container Apps. Fast redeploy after config changes. |
+| `-SkipDeploy` | Build images only; skip the Container App update. Useful for warming the registry. |
+| `-Tag <value>` | Push and deploy a custom image tag (default: short git SHA, falling back to a timestamp). |
+
+### Step 4 — Verify your deployment
+
+The script prints both URLs at the end. To smoke-test the Foundry LLM connection (no DB writes — completely safe):
+
+1. Open the **Dashboard** URL in a browser.
+2. Find the **"LLM provider smoke test (no DB writes)"** panel near the top.
+3. Pick `foundry`, click **Test**. You should see a JSON response like:
+   ```json
+   { "ok": true, "provider": "foundry", "model": "gpt-5-mini", "text": "PONG", ... }
+   ```
+
+That confirms your APIM key is valid and routes through to the shared Foundry endpoint.
+
+> **Important — do NOT click `Run` on the `08c · LLM review` button** unless the organizer has pointed your `DB_CONNECTION_STRING` at a writable database. The default Render connection string is a **read-only replica** and the pipeline phases will error out trying to write back. Use the LLM smoke test panel instead — it never writes to the database.
+
+### Redeploying after code changes
+
+```powershell
+pwsh ./deploy-app.ps1            # full rebuild + redeploy
+pwsh ./deploy-app.ps1 -SkipBuild # config-only redeploy (faster)
+```
+
+### Tearing down your team's apps
+
+If you want to remove your apps without touching the shared infrastructure:
+
+```powershell
+az containerapp delete -n ca-<prefix>-dashboard -g <PLATFORM_RG> --yes
+az containerapp delete -n ca-<prefix>-dossier   -g <PLATFORM_RG> --yes
+```
+
+The shared ACR images, KV, APIM, and Foundry endpoint are organizer-managed and stay in place.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `az: command not found` | Azure CLI not installed | Install from the link in Prerequisites. |
+| `pwsh: command not found` | Running in Windows PowerShell 5.x or no PowerShell | Install PowerShell 7+. |
+| `Forbidden` / `AuthorizationFailed` on ACR or Container Apps | Your Azure account isn't on the shared resource group | Ask the organizer to grant you Contributor on `PLATFORM_RG`. |
+| `cannot execute UPDATE in a read-only transaction` in app logs | App is hitting the Render read-replica during a write | Expected with the read-replica DB; only the LLM smoke-test path is safe. |
+| `Foundry/APIM error 401` / `403` from the LLM smoke test | Wrong or missing `APIM_SUBSCRIPTION_KEY` | Re-check the value in `.env` and rerun `pwsh ./deploy-app.ps1 -SkipBuild`. |
+| Container App stuck in `ProvisioningState: Failed` | A previous failed deploy left a bad revision | Delete the app (see Tearing down above) and rerun `pwsh ./deploy-app.ps1 -SkipBuild`. |
+

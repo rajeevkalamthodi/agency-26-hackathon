@@ -1,0 +1,31 @@
+# Build context = repo root; only `general/` is needed for the two app images.
+**/node_modules
+**/.env
+**/.env.public
+**/.env.azure
+**/.env.render
+.git
+.gitignore
+.gitattributes
+.local-db/data
+.local-db/node_modules
+.local-db/*.log
+*.log
+
+# Other modules — not part of the dashboard/dossier images
+AB/
+CRA/
+FED/
+tests/
+
+# Docs / IDE
+docs/
+.vscode/
+.claude/
+*.md
+!general/README.md
+
+# Build artefacts
+**/coverage
+**/dist
+**/build

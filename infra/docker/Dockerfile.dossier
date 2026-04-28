@@ -1,0 +1,20 @@
+# =============================================================================
+# Dockerfile.dossier — per-entity explorer UI (port 3801)
+# Build context = repo root.
+#   az acr build -r <acr> -t agency26/dossier:<sha> \
+#       -f infra/docker/Dockerfile.dossier .
+# =============================================================================
+FROM node:20-slim AS deps
+WORKDIR /app
+COPY general/package.json general/package-lock.json ./
+RUN npm ci --omit=optional --ignore-scripts \
+ && npm cache clean --force
+
+FROM node:20-slim AS runtime
+ENV NODE_ENV=production \
+    PORT=3801
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY general/ ./
+EXPOSE 3801
+CMD ["node", "visualizations/server.js"]
